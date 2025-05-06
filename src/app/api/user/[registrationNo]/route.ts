@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID!;
 const SHEET_RANGE = "Sheet1";
@@ -22,15 +22,22 @@ async function getSheetData() {
   return response.data.values;
 }
 
+type Params = {
+  params: {
+    registrationNo: string;
+  };
+};
+
 export async function GET(
-  req: NextRequest,
-  context: { params: { registrationNo: string } }
+  request: NextRequest,
+  context: { params: Promise<{ registrationNo: string }> }
 ) {
   try {
-    const { registrationNo } = await context.params; // Await context.params
+    const { registrationNo } = await context.params;
     const rows = await getSheetData();
+
     if (!rows || rows.length === 0) {
-      return new Response(JSON.stringify({ found: false }), { status: 404 });
+      return NextResponse.json({ found: false }, { status: 404 });
     }
 
     const headers = rows[0];
@@ -42,15 +49,14 @@ export async function GET(
       headers.forEach((header, idx) => {
         user[header] = match[idx];
       });
-      return new Response(JSON.stringify({ found: true, data: user }), {
-        status: 200,
-      });
-    } else {
-      return new Response(JSON.stringify({ found: false }), { status: 404 });
+
+      return NextResponse.json({ found: true, data: user });
     }
+
+    return NextResponse.json({ found: false }, { status: 404 });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: "Internal Server Error", detail: err }),
+    return NextResponse.json(
+      { error: "Internal Server Error", detail: `${err}` },
       { status: 500 }
     );
   }
