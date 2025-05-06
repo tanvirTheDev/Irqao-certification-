@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 
+// Define the type for the result state
+type ResultType = {
+  found: boolean;
+  data?: Record<string, unknown>; // Adjust this type based on your API response structure
+};
+
 export default function Home() {
   const [regNo, setRegNo] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ResultType | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
@@ -12,7 +18,7 @@ export default function Home() {
     setResult(null);
     try {
       const res = await fetch(`/api/user/${regNo}`);
-      const data = await res.json();
+      const data: ResultType = await res.json();
       setResult(data);
     } catch (e) {
       console.error(e);

@@ -26,8 +26,8 @@ export async function GET(
   req: NextRequest,
   context: { params: { registrationNo: string } }
 ) {
-  const { registrationNo } = context.params;
   try {
+    const { registrationNo } = await context.params; // Await context.params
     const rows = await getSheetData();
     if (!rows || rows.length === 0) {
       return new Response(JSON.stringify({ found: false }), { status: 404 });
